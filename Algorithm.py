@@ -5,6 +5,21 @@ file created : April 8 2024
 Last modified : April 8 2024 - Sajjad
 """
 
+"""
+note for you guys:
+the idea is to copy the DNA make x percentage of the data missing and then impute the missing values using 3 different methods,
+1. dynamic local least imputation
+2. local least imputation
+3. KNN imputation
+and then evaluate the performance of the imputation methods using RMSE and NRMSE. ** need to get RMSE to do NRMSE.
+so far it works fine but when it comes to evaluating the performance of the imputation methods using RMSE and NRMSE, I am still getting an error.
+so I need to fix that.
+some solution that i haven't tried are:
+1. instead of using the .values.flatten() method, I can use the .values.ravel() method.
+2. use slice of the chimpanzee data instead of the whole DNA sequence.
+3. use the .iloc method to access values for imputation and assign back to the DataFrame.
+"""
+
 import numpy as np
 import pandas as pd
 from sklearn.impute import KNNImputer
