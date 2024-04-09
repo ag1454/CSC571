@@ -34,27 +34,39 @@ class DNAMissingValueEstimator:
         # Make a copy of the original data
         self.imputed_data = self.data.copy()
 
+        print("Before simulating missing values:", len(self.imputed_data))
+
         # Simulate missing values
         self.simulate_missing_values(missing_percentage)
+
+        print("After simulating missing values:", len(self.imputed_data))
+
+        # Convert DNA sequences to numeric format
+        self.convert_to_numeric()
+
+        print("After converting to numeric:", len(self.imputed_data))
 
         # Perform imputation using different methods
         self.dynamic_local_least_imputation(window_size)
         self.local_least_imputation(window_size)
         self.knn_imputation(k_neighbors)
 
-    def evaluate_performance(self, true_data):
+        print("After imputation:", len(self.imputed_data))
+
+
+    def convert_to_numeric(self):
         """
-        Evaluate the performance of the imputation methods using RMSE and NRMSE.
+        Convert DNA sequences to numeric format using one-hot encoding.
         """
-        for method in self.imputed_data.columns:
-            imputed_values = self.imputed_data[method]
-            rmse = np.sqrt(mean_squared_error(true_data, imputed_values))
-            range_true = np.max(true_data) - np.min(true_data)
-            nrmse = rmse / range_true
-            print(f"Method: {method}")
-            print(f"RMSE: {rmse:.4f}")
-            print(f"NRMSE: {nrmse:.4f}")
-            print()
+        # Define mapping of DNA bases to numeric values
+        base_to_numeric = {'A': 0, 'T': 1, 'C': 2, 'G': 3}
+
+        # Apply one-hot encoding to each DNA sequence column
+        for col in self.imputed_data.columns:
+            self.imputed_data[col] = self.imputed_data[col].apply(lambda x: [base_to_numeric.get(base, -1) for base in x])
+
+        # Convert the DataFrame to numeric dtype
+        self.imputed_data = self.imputed_data.apply(pd.to_numeric, errors='coerce')
 
     def simulate_missing_values(self, missing_percentage):
         """
@@ -65,24 +77,58 @@ class DNAMissingValueEstimator:
         columns = np.random.choice(self.data.columns, num_missing, replace=True)
         self.imputed_data.loc[indices, columns] = np.nan
 
-    def dynamic_local_least_imputation(self, window_size):
+    def dynamic_local_least_imputation(self):
         """
-        Implement dynamic local least imputation.
+        Implement dynamic local least imputation using linear interpolation.
         """
-        self.imputed_data['Dynamic Local Least Imputation'] = self.imputed_data.interpolate(method='polynomial', order=1, axis=1)
+        # Iterate over each column and perform linear interpolation
+        for col in self.imputed_data.columns:
+            self.imputed_data[col] = self.imputed_data[col].interpolate(method='linear')
 
-    def local_least_imputation(self, window_size):
+    def local_least_imputation(self):
         """
-        Implement local least imputation.
+        Implement local least imputation using linear interpolation.
         """
-        self.imputed_data['Local Least Imputation'] = self.imputed_data.interpolate(method='linear', axis=1)
+        # Iterate over each column and perform linear interpolation
+        for col in self.imputed_data.columns:
+            self.imputed_data[col] = self.imputed_data[col].interpolate(method='linear')
 
     def knn_imputation(self, k_neighbors):
         """
         Implement KNN imputation.
         """
         imputer = KNNImputer(n_neighbors=k_neighbors)
-        self.imputed_data['KNN Imputation'] = pd.DataFrame(imputer.fit_transform(self.imputed_data), columns=self.imputed_data.columns)
+        # Use `iloc` to access values for imputation and assign back to the DataFrame
+        self.imputed_data.iloc[:, :] = imputer.fit_transform(self.imputed_data)
+
+    def evaluate_performance(self, true_data):
+        """
+        Evaluate the performance of the imputation methods using RMSE and NRMSE.
+        """
+        # Get the number of rows in true data
+        num_samples_true = true_data.shape[0]
+
+        for method in self.imputed_data.columns:
+            # Get the number of rows in imputed data for the current method
+            num_samples_imputed = self.imputed_data[method].shape[0]
+
+            # Ensure both datasets have the same number of samples
+            if num_samples_true != num_samples_imputed:
+                raise ValueError("Number of samples in true data and imputed data are not consistent.")
+
+            # Flatten true and imputed values
+            true_values = true_data.values.flatten()
+            imputed_values = self.imputed_data[method].values.flatten()
+
+            rmse = np.sqrt(mean_squared_error(true_values, imputed_values))
+            range_true = np.max(true_values) - np.min(true_values)
+            nrmse = rmse / range_true
+            print(f"Method: {method}")
+            print(f"RMSE: {rmse:.4f}")
+            print(f"NRMSE: {nrmse:.4f}")
+            print()
+
+
 
     def moore_penrose_checks(self):
         """
@@ -111,11 +157,8 @@ if __name__ == "__main__":
     # Preprocess data with different methods and parameters
     estimator.preprocess_data(window_size=window_size, k_neighbors=k_neighbors, missing_percentage=missing_percentage)
 
-    # Load true data (replace with your actual true data)
-    true_data = pd.read_csv("true_dna_data.csv", sep='\t')
-
     # Evaluate performance for each imputation method
-    estimator.evaluate_performance(true_data)
+    estimator.evaluate_performance(estimator.data)
 
     # Perform Moore-Penrose inverse checks
     estimator.moore_penrose_checks()
