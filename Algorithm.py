@@ -1,8 +1,10 @@
 """
-Name: 
-project1:
-file created : April 8 2024
-Last modified : April 8 2024 - Sajjad
+CSC571 Data Mining
+Project 1
+Programmers: Jeray Neely-Speaks, Sajjad Alsaffar, Abigail Garrido
+Professor: Dr. Jeonghwa Lee
+File Created: 4/8/2024
+File Updated: 4/9/2024
 """
 
 """
