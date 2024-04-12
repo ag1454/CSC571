@@ -4,7 +4,7 @@ from scipy.linalg import svd, pinv
 # Function to generate 10% missing values
 def generate_missing(sequence):
     # Calculate the number of missing values to be generated
-    num_missing = round(len(sequence) * 0.10)
+    num_missing = round(len(sequence) * 0.1)
     
     # Randomly select positions in the sequence
     missing_positions = np.random.choice(len(sequence), num_missing, replace=False)
@@ -73,3 +73,30 @@ G_imputed_svd = svd_impute(np.array(G_imputed).reshape(-1,1))
 match_count = sum([1 for i, j in zip(seq_copy, G_imputed) if i == j])
 percentage = (match_count / len(seq_copy)) * 100
 print(f"Matching percentage: {percentage}%")
+
+# Convert seq_copy to numpy array
+seq_copy = np.array(seq_copy)
+
+# Ensure seq_copy and G_imputed have the same length
+if len(seq_copy) > len(G_imputed):
+    seq_copy = seq_copy[:len(G_imputed)]
+else:
+    G_imputed = G_imputed[:len(seq_copy)]
+
+
+# calculate NRMSE with out the part to set the diff to 1 if its zero
+
+nrmse = np.sqrt(np.mean((seq_copy - G_imputed)**2)) / (np.max(seq_copy) - np.min(seq_copy))
+nrmse = np.sqrt(np.mean((np.array(seq_copy) - np.array(G_imputed))**2)) / (np.max(seq_copy) - np.min(seq_copy))
+print(f"NRMSE: {nrmse}")
+
+# Calculate NRMSE with the part to set the diff to 1 if its zero
+nrmse_diff = (seq_copy - G_imputed)**2
+
+if np.all(nrmse_diff == 0):
+    nrmse_diff = 1
+else:
+    nrmse_diff
+
+nrmse = np.sqrt(np.mean(nrmse_diff)) / (np.max(seq_copy) - np.min(seq_copy))
+print(f"NRMSE: {nrmse}")
