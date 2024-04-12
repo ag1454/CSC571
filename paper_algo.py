@@ -73,3 +73,32 @@ G_imputed_svd = svd_impute(np.array(G_imputed).reshape(-1,1))
 match_count = sum([1 for i, j in zip(seq_copy, G_imputed) if i == j])
 percentage = (match_count / len(seq_copy)) * 100
 print(f"Matching percentage: {percentage}%")
+
+# Convert seq_copy to numpy array
+seq_copy = np.array(seq_copy)
+
+# Ensure seq_copy and G_imputed have the same length
+if len(seq_copy) > len(G_imputed):
+    seq_copy = seq_copy[:len(G_imputed)]
+else:
+    G_imputed = G_imputed[:len(seq_copy)]
+
+
+# calculate NRMSE
+
+nrmse = np.sqrt(np.mean((seq_copy - G_imputed)**2)) / (np.max(seq_copy) - np.min(seq_copy))
+nrmse = np.sqrt(np.mean((np.array(seq_copy) - np.array(G_imputed))**2)) / (np.max(seq_copy) - np.min(seq_copy))
+print(f"NRMSE: {nrmse}")
+
+
+
+"""
+we need to implement this into the function above
+nrmse_diff = (seq_copy - G_imputed)**2
+
+if nrmse_diff == 0:
+    nrmse_diff = 1
+else:
+    nrmse_diff
+
+"""
