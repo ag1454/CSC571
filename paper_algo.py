@@ -4,7 +4,7 @@ from scipy.linalg import svd, pinv
 # Function to generate 10% missing values
 def generate_missing(sequence):
     # Calculate the number of missing values to be generated
-    num_missing = round(len(sequence) * 0.10)
+    num_missing = round(len(sequence) * 0.1)
     
     # Randomly select positions in the sequence
     missing_positions = np.random.choice(len(sequence), num_missing, replace=False)
@@ -84,21 +84,19 @@ else:
     G_imputed = G_imputed[:len(seq_copy)]
 
 
-# calculate NRMSE
+# calculate NRMSE with out the part to set the diff to 1 if its zero
 
 nrmse = np.sqrt(np.mean((seq_copy - G_imputed)**2)) / (np.max(seq_copy) - np.min(seq_copy))
 nrmse = np.sqrt(np.mean((np.array(seq_copy) - np.array(G_imputed))**2)) / (np.max(seq_copy) - np.min(seq_copy))
 print(f"NRMSE: {nrmse}")
 
-
-
-"""
-we need to implement this into the function above
+# Calculate NRMSE with the part to set the diff to 1 if its zero
 nrmse_diff = (seq_copy - G_imputed)**2
 
-if nrmse_diff == 0:
+if np.all(nrmse_diff == 0):
     nrmse_diff = 1
 else:
     nrmse_diff
 
-"""
+nrmse = np.sqrt(np.mean(nrmse_diff)) / (np.max(seq_copy) - np.min(seq_copy))
+print(f"NRMSE: {nrmse}")
